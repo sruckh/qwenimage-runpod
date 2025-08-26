@@ -138,7 +138,63 @@ with torch.inference_mode():
 ```
 
 > [!NOTE]
-> We highly recommend using prompt rewriting to improve the stability of editing cases. For reference, please see our official [demo script](src/examples/edit_demo.py), which includes example system prompts. Qwen-Image-Edit is actively evolving with ongoing development. Stay tuned for future enhancements!
+> We have observed that editing results may become unstable if prompt rewriting is not used. Therefore, we strongly recommend applying prompt rewriting to improve the stability of editing tasks. For reference, please see our official [demo script](src/examples/tools/prompt_utils.py) or Advanced Usage below, which includes example system prompts. Qwen-Image-Edit is actively evolving with ongoing development. Stay tuned for future enhancements!
+
+
+
+### Advanced Usage
+
+#### Prompt Enhance for Text-to-Image
+For enhanced prompt optimization and multi-language support, we recommend using our official Prompt Enhancement Tool powered by Qwen-Plus .
+
+You can integrate it directly into your code:
+```python
+from tools.prompt_utils import rewrite
+prompt = rewrite(prompt)
+```
+
+Alternatively, run the example script from the command line:
+
+```bash
+cd src
+DASHSCOPE_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx python examples/generate_w_prompt_enhance.py
+```
+
+#### Prompt Enhance for Image Edit
+For enhanced stability, we recommend using our official Prompt Enhancement Tool powered by Qwen-VL-Max.
+
+You can integrate it directly into your code:
+```python
+from tools.prompt_utils import polish_edit_prompt
+prompt = polish_edit_prompt(prompt, pil_image)
+```
+
+
+## Deploy Qwen-Image
+
+Qwen-Image supports Multi-GPU API Server for local deployment:
+
+### Multi-GPU API Server Pipeline & Usage
+
+The Multi-GPU API Server will start a Gradio-based web interface with:
+- Multi-GPU parallel processing
+- Queue management for high concurrency
+- Automatic prompt optimization
+- Support for multiple aspect ratios
+
+Configuration via environment variables:
+```bash
+export NUM_GPUS_TO_USE=4          # Number of GPUs to use
+export TASK_QUEUE_SIZE=100        # Task queue size
+export TASK_TIMEOUT=300           # Task timeout in seconds
+```
+
+```bash
+# Start the gradio demo server, api key for prompt enhance
+cd src
+DASHSCOPE_API_KEY=sk-xxxxxxxxxxxxxxxxx python examples/demo.py 
+```
+
 
 ## Show Cases
 
@@ -203,53 +259,6 @@ Isn't it amazing? With this chained, step-by-step editing approach, we can conti
 ![Final version 5](https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-Image/edit_en/幻灯片25.JPG#center)
 Finally, we have successfully obtained a completely correct calligraphy version of *Lantingji Xu (Orchid Pavilion Preface)*!
 In summary, we hope that Qwen-Image-Edit can further advance the field of image generation, truly lower the technical barriers to visual content creation, and inspire even more innovative applications.
-
-
-
-
-### Advanced Usage
-
-#### Prompt Enhance
-For enhanced prompt optimization and multi-language support, we recommend using our official Prompt Enhancement Tool powered by Qwen-Plus .
-
-You can integrate it directly into your code:
-```python
-from tools.prompt_utils import rewrite
-prompt = rewrite(prompt)
-```
-
-Alternatively, run the example script from the command line:
-
-```bash
-cd src
-DASHSCOPE_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx python examples/generate_w_prompt_enhance.py
-```
-
-
-## Deploy Qwen-Image
-
-Qwen-Image supports Multi-GPU API Server for local deployment:
-
-### Multi-GPU API Server Pipeline & Usage
-
-The Multi-GPU API Server will start a Gradio-based web interface with:
-- Multi-GPU parallel processing
-- Queue management for high concurrency
-- Automatic prompt optimization
-- Support for multiple aspect ratios
-
-Configuration via environment variables:
-```bash
-export NUM_GPUS_TO_USE=4          # Number of GPUs to use
-export TASK_QUEUE_SIZE=100        # Task queue size
-export TASK_TIMEOUT=300           # Task timeout in seconds
-```
-
-```bash
-# Start the gradio demo server, api key for prompt enhance
-cd src
-DASHSCOPE_API_KEY=sk-xxxxxxxxxxxxxxxxx python examples/demo.py 
-```
 
 
 ## AI Arena
