@@ -1,0 +1,1 @@
+I have updated the Dockerfile to install the `flash_attn` wheel with `cxx11abiTRUE` version (flash_attn-2.7.3+cu12torch2.2cxx11abiTRUE-cp310-cp310-linux_x86_64.whl). This change addresses potential ABI incompatibility issues with the pre-installed PyTorch and CUDA in the RunPod base image.
