@@ -11,6 +11,7 @@ import torch.multiprocessing as mp
 from multiprocessing import Process, Queue, Event
 import atexit
 import signal
+import requests
 
 mp.set_start_method('spawn', force=True)
 
@@ -160,6 +161,27 @@ class GPUWorker:
 def gpu_worker_process(gpu_id, model_repo_id, task_queue, result_queue, stop_event):
     worker = GPUWorker(gpu_id, model_repo_id, task_queue, result_queue, stop_event)
     worker.run()
+
+def download_lora(url):
+    if not url:
+        return None
+    try:
+        lora_dir = "/workspaces/projects/loras"
+        os.makedirs(lora_dir, exist_ok=True)
+        file_name = os.path.basename(url)
+        local_path = os.path.join(lora_dir, file_name)
+        if not os.path.exists(local_path):
+            print(f"Downloading LoRA from {url}...")
+            response = requests.get(url, stream=True)
+            response.raise_for_status()
+            with open(local_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            print(f"Downloaded LoRA to {local_path}")
+        return local_path
+    except Exception as e:
+        print(f"Failed to download LoRA from {url}: {e}")
+        return None
 
 class MultiGPUManager:
     def __init__(self, model_repo_id, num_gpus=None, task_queue_size=100):
@@ -332,6 +354,9 @@ def infer_text_to_image(
     lora3_scale=1.0,
     progress=gr.Progress(track_tqdm=True)
 ):
+    lora1_path = download_lora(lora1)
+    lora2_path = download_lora(lora2)
+    lora3_path = download_lora(lora3)
     global gpu_manager
 
     if gpu_manager is None:
@@ -369,11 +394,11 @@ def infer_text_to_image(
         num_inference_steps=num_inference_steps,
         timeout=TASK_TIMEOUT,
         progress_callback=progress,
-        lora1=lora1,
+        lora1=lora1_path,
         lora1_scale=lora1_scale,
-        lora2=lora2,
+        lora2=lora2_path,
         lora2_scale=lora2_scale,
-        lora3=lora3,
+        lora3=lora3_path,
         lora3_scale=lora3_scale,
     )
 
@@ -412,6 +437,9 @@ def infer_image_edit(
     use_lightning_edit=True,
     progress=gr.Progress(track_tqdm=True),
 ):
+    lora1_edit_path = download_lora(lora1_edit)
+    lora2_edit_path = download_lora(lora2_edit)
+    lora3_edit_path = download_lora(lora3_edit)
     global gpu_manager
 
     if gpu_manager is None:
@@ -448,12 +476,12 @@ def infer_image_edit(
         if use_lightning_edit:
             worker.pipe_edit.load_lora_weights("lightx2v/Qwen-Image-Lightning", weight_name="Qwen-Image-Lightning-8steps-V1.1.safetensors", adapter_name="lightning")
 
-        if lora1_edit:
-            worker.pipe_edit.load_lora_weights(lora1_edit, adapter_name=lora1_edit)
-        if lora2_edit:
-            worker.pipe_edit.load_lora_weights(lora2_edit, adapter_name=lora2_edit)
-        if lora3_edit:
-            worker.pipe_edit.load_lora_weights(lora3_edit, adapter_name=lora3_edit)
+        if lora1_edit_path:
+            worker.pipe_edit.load_lora_weights(lora1_edit_path, adapter_name=lora1_edit_path)
+        if lora2_edit_path:
+            worker.pipe_edit.load_lora_weights(lora2_edit_path, adapter_name=lora2_edit_path)
+        if lora3_edit_path:
+            worker.pipe_edit.load_lora_weights(lora3_edit_path, adapter_name=lora3_edit_path)
 
         adapter_names = []
         adapter_weights = []
@@ -461,14 +489,14 @@ def infer_image_edit(
         if use_lightning_edit:
             adapter_names.append("lightning")
             adapter_weights.append(1.0)
-        if lora1_edit:
-            adapter_names.append(lora1_edit)
+        if lora1_edit_path:
+            adapter_names.append(lora1_edit_path)
             adapter_weights.append(lora1_scale_edit)
-        if lora2_edit:
-            adapter_names.append(lora2_edit)
+        if lora2_edit_path:
+            adapter_names.append(lora2_edit_path)
             adapter_weights.append(lora2_scale_edit)
-        if lora3_edit:
-            adapter_names.append(lora3_edit)
+        if lora3_edit_path:
+            adapter_names.append(lora3_edit_path)
             adapter_weights.append(lora3_scale_edit)
 
         if adapter_names:
@@ -541,13 +569,13 @@ with gr.Blocks() as demo:
                         value=50,
                     )
                 with gr.Row():
-                    lora1 = gr.File(label="LoRA 1")
+                    lora1 = gr.Textbox(label="LoRA 1 URL")
                     lora1_scale = gr.Slider(label="LoRA 1 Scale", minimum=0.0, maximum=2.0, step=0.01, value=1.0)
                 with gr.Row():
-                    lora2 = gr.File(label="LoRA 2")
+                    lora2 = gr.Textbox(label="LoRA 2 URL")
                     lora2_scale = gr.Slider(label="LoRA 2 Scale", minimum=0.0, maximum=2.0, step=0.01, value=1.0)
                 with gr.Row():
-                    lora3 = gr.File(label="LoRA 3")
+                    lora3 = gr.Textbox(label="LoRA 3 URL")
                     lora3_scale = gr.Slider(label="LoRA 3 Scale", minimum=0.0, maximum=2.0, step=0.01, value=1.0)
             
             run_button.click(
@@ -649,13 +677,13 @@ with gr.Blocks() as demo:
                     
                     rewrite_prompt_edit = gr.Checkbox(label="Rewrite prompt", value=True)
                 with gr.Row():
-                    lora1_edit = gr.File(label="LoRA 1")
+                    lora1_edit = gr.Textbox(label="LoRA 1 URL")
                     lora1_scale_edit = gr.Slider(label="LoRA 1 Scale", minimum=0.0, maximum=2.0, step=0.01, value=1.0)
                 with gr.Row():
-                    lora2_edit = gr.File(label="LoRA 2")
+                    lora2_edit = gr.Textbox(label="LoRA 2 URL")
                     lora2_scale_edit = gr.Slider(label="LoRA 2 Scale", minimum=0.0, maximum=2.0, step=0.01, value=1.0)
                 with gr.Row():
-                    lora3_edit = gr.File(label="LoRA 3")
+                    lora3_edit = gr.Textbox(label="LoRA 3 URL")
                     lora3_scale_edit = gr.Slider(label="LoRA 3 Scale", minimum=0.0, maximum=2.0, step=0.01, value=1.0)
                 with gr.Row():
                     use_lightning_edit = gr.Checkbox(label="Use Lightning Model", value=True)
