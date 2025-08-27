@@ -5,3 +5,5 @@ diffusers
 transformers
 accelerate
 pylint
+dashscope
+Pillow

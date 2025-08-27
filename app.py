@@ -456,9 +456,13 @@ def infer_image_edit(
     if randomize_seed:
         seed = random.randint(0, MAX_SEED)
 
-    from src.examples.tools.prompt_utils import polish_edit_prompt
+    from src.examples.tools.prompt_utils import polish_multi_edit_prompt
     if rewrite_prompt:
-        prompt = polish_edit_prompt(prompt, image)
+        if image2:
+            prompt = polish_multi_edit_prompt(prompt, image, image2)
+        else:
+            from src.examples.tools.prompt_utils import polish_edit_prompt
+            prompt = polish_edit_prompt(prompt, image)
         print(f"Rewritten Prompt: {prompt}")
 
     if image2:
@@ -598,6 +602,23 @@ with gr.Blocks() as demo:
                 outputs=[result, seed]
             )
 
+        with gr.TabItem("Image Editing"):
+            gr.Markdown("## Image Editing")
+            with gr.Row():
+                with gr.Column():
+                    input_image = gr.Image(label="Input Image 1", show_label=False, type="pil")
+                with gr.Column():
+                    input_image_2 = gr.Image(label="Input Image 2", show_label=False, type="pil")
+                result_edit = gr.Image(label="Result", show_label=False, type="pil")
+            with gr.Row():
+                prompt_edit = gr.Text(
+                        label="Prompt",
+                        show_label=False,
+                        placeholder="describe the edit instruction",
+                        container=False,
+                )
+                run_button_edit = gr.Button("Edit!", variant="primary")
+
             run_button_edit.click(
                 fn=infer_image_edit,
                 inputs=[
@@ -620,23 +641,6 @@ with gr.Blocks() as demo:
                 ],
                 outputs=[result_edit, seed_edit]
             )
-
-        with gr.TabItem("Image Editing"):
-            gr.Markdown("## Image Editing")
-            with gr.Row():
-                with gr.Column():
-                    input_image = gr.Image(label="Input Image 1", show_label=False, type="pil")
-                with gr.Column():
-                    input_image_2 = gr.Image(label="Input Image 2", show_label=False, type="pil")
-                result_edit = gr.Gallery(label="Result", show_label=False, type="pil")
-            with gr.Row():
-                prompt_edit = gr.Text(
-                        label="Prompt",
-                        show_label=False,
-                        placeholder="describe the edit instruction",
-                        container=False,
-                )
-                run_button_edit = gr.Button("Edit!", variant="primary")
 
             with gr.Accordion("Advanced Settings", open=False):
                 seed_edit = gr.Slider(
