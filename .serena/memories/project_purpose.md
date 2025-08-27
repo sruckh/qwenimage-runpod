@@ -1,0 +1,1 @@
+This project is a text-to-image and image editing model with a focus on complex text rendering and precise image editing. It uses Python, PyTorch, and the `diffusers` and `transformers` libraries.

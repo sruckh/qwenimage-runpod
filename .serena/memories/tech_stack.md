@@ -1,0 +1,4 @@
+- Python
+- PyTorch
+- diffusers (installed from git)
+- transformers>=4.51.3

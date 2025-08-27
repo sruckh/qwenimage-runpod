@@ -1,0 +1,7 @@
+gradio
+numpy
+torch
+diffusers
+transformers
+accelerate
+pylint

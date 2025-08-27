@@ -1,0 +1,5 @@
+- The main logic is within the `diffusers` and `transformers` libraries.
+- The `src` directory contains examples of how to use the model.
+- `src/examples/demo.py`: A Gradio demo.
+- `src/examples/edit_demo.py`: An image editing demo.
+- `src/examples/tools/prompt_utils.py`: Provides prompt enhancement tools.

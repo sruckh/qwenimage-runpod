@@ -1,0 +1,2 @@
+project_name: qwenimage-runpod
+language: python  # or typescript, java, csharp, rust, go, ruby, cpp, php, swift, elixir, terraform, bash
