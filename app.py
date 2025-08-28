@@ -619,29 +619,6 @@ with gr.Blocks() as demo:
                 )
                 run_button_edit = gr.Button("Edit!", variant="primary")
 
-            run_button_edit.click(
-                fn=infer_image_edit,
-                inputs=[
-                    input_image,
-                    input_image_2,
-                    prompt_edit,
-                    seed_edit,
-                    randomize_seed_edit,
-                    true_guidance_scale_edit,
-                    num_inference_steps_edit,
-                    rewrite_prompt_edit,
-                    num_images_per_prompt_edit,
-                    lora1_edit,
-                    lora1_scale_edit,
-                    lora2_edit,
-                    lora2_scale_edit,
-                    lora3_edit,
-                    lora3_scale_edit,
-                    use_lightning_edit,
-                ],
-                outputs=[result_edit, seed_edit]
-            )
-
             with gr.Accordion("Advanced Settings", open=False):
                 seed_edit = gr.Slider(
                     label="Seed",
@@ -691,6 +668,28 @@ with gr.Blocks() as demo:
                     lora3_scale_edit = gr.Slider(label="LoRA 3 Scale", minimum=0.0, maximum=2.0, step=0.01, value=1.0)
                 with gr.Row():
                     use_lightning_edit = gr.Checkbox(label="Use Lightning Model", value=True)
+            run_button_edit.click(
+                fn=infer_image_edit,
+                inputs=[
+                    input_image,
+                    input_image_2,
+                    prompt_edit,
+                    seed_edit,
+                    randomize_seed_edit,
+                    true_guidance_scale_edit,
+                    num_inference_steps_edit,
+                    rewrite_prompt_edit,
+                    num_images_per_prompt_edit,
+                    lora1_edit,
+                    lora1_scale_edit,
+                    lora2_edit,
+                    lora2_scale_edit,
+                    lora3_edit,
+                    lora3_scale_edit,
+                    use_lightning_edit,
+                ],
+                outputs=[result_edit, seed_edit]
+            )
 
 if __name__ == "__main__":
     def cleanup():
