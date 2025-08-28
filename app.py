@@ -707,7 +707,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, signal_handler)
 
     try:
-        demo.launch(server_name="0.0.0.0")
+        demo.launch(server_name="0.0.0.0", share=True)
     except KeyboardInterrupt:
         print("Received interrupt signal, cleaning up resources...")
         cleanup()
