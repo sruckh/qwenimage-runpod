@@ -1,1 +1,7 @@
 FROM runpod/pytorch:2.2.0-py3.10-cuda12.1.1-devel-ubuntu22.04
+
+WORKDIR /
+
+COPY bootstrap.sh .
+
+CMD ["./bootstrap.sh"]
