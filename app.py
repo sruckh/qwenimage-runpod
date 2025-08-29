@@ -39,7 +39,6 @@ class GPUWorker:
         self.stop_event = stop_event
         self.device = f"cuda:{gpu_id}"
         self.pipe = None
-        self.pipe_edit = None
 
     def initialize_model(self):
         """Initialize the model on the specified GPU"""
@@ -50,9 +49,7 @@ class GPUWorker:
             else:
                 torch_dtype = torch.float32
 
-            self.pipe = DiffusionPipeline.from_pretrained(self.model_repo_id, torch_dtype=torch_dtype)
-            self.pipe = self.pipe.to(self.device)
-            self.pipe_edit = QwenImageEditPipeline.from_pretrained("Qwen/Qwen-Image-Edit", torch_dtype=torch_dtype).to(self.device)
+            self.pipe = DiffusionPipeline.from_pretrained(self.model_repo_id, torch_dtype=torch.bfloat16).to(self.device)
             print(f"GPU {self.gpu_id} model initialized successfully")
             return True
         except Exception as e:
@@ -477,15 +474,17 @@ def infer_image_edit(
     if len(gpu_manager.worker_processes) > 0:
         worker = gpu_manager.worker_processes[0]
 
+        pipe_edit = QwenImageEditPipeline.from_pretrained("Qwen/Qwen-Image-Edit", torch_dtype=torch.bfloat16).to(worker.device)
+
         if use_lightning_edit:
-            worker.pipe_edit.load_lora_weights("lightx2v/Qwen-Image-Lightning", weight_name="Qwen-Image-Lightning-8steps-V1.1.safetensors", adapter_name="lightning")
+            pipe_edit.load_lora_weights("lightx2v/Qwen-Image-Lightning", weight_name="Qwen-Image-Lightning-8steps-V1.1.safetensors", adapter_name="lightning")
 
         if lora1_edit_path:
-            worker.pipe_edit.load_lora_weights(lora1_edit_path, adapter_name=lora1_edit_path)
+            pipe_edit.load_lora_weights(lora1_edit_path, adapter_name=lora1_edit_path)
         if lora2_edit_path:
-            worker.pipe_edit.load_lora_weights(lora2_edit_path, adapter_name=lora2_edit_path)
+            pipe_edit.load_lora_weights(lora2_edit_path, adapter_name=lora2_edit_path)
         if lora3_edit_path:
-            worker.pipe_edit.load_lora_weights(lora3_edit_path, adapter_name=lora3_edit_path)
+            pipe_edit.load_lora_weights(lora3_edit_path, adapter_name=lora3_edit_path)
 
         adapter_names = []
         adapter_weights = []
@@ -504,10 +503,10 @@ def infer_image_edit(
             adapter_weights.append(lora3_scale_edit)
 
         if adapter_names:
-            worker.pipe_edit.set_adapters(adapter_names, adapter_weights=adapter_weights)
+            pipe_edit.set_adapters(adapter_names, adapter_weights=adapter_weights)
 
         generator = torch.Generator(device=worker.device).manual_seed(seed)
-        result_image = worker.pipe_edit(
+        result_image = pipe_edit(
             image=image,
             prompt=prompt,
             negative_prompt="",
