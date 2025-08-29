@@ -36,10 +36,6 @@ python3.10 -m pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --i
 python3.10 -m pip install --no-cache-dir -r requirements.txt
 python3.10 -m pip install git+https://github.com/huggingface/diffusers
 
-# Patch diffusers to remove xpu reference
-sed -i 's/"xpu": torch.xpu.device_count,/\/\/"xpu": torch.xpu.device_count,/g' /usr/local/lib/python3.10/dist-packages/diffusers/utils/torch_utils.py
-sed -i 's/"xpu": torch.xpu.empty_cache,/\/\/"xpu": torch.xpu.empty_cache,/g' /usr/local/lib/python3.10/dist-packages/diffusers/utils/torch_utils.py
-
 pip install https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.0.post2/flash_attn-2.8.0.post2+cu12torch2.7cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
 
 # Execute the application
